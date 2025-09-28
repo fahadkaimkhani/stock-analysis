@@ -1,7 +1,13 @@
 streamlit
 pandas
 yfinance
+numpy
+matplotlib
+seaborn
 plotly
+statsmodels
 ta
 pandas_ta
 python-dateutil
+
+

@@ -33,6 +33,15 @@ st.subheader(f"Predicting Next 30 Days Close Price for: {ticker}")
 
 # Step 1: Load data and smooth it
 close_price = get_data(ticker)
+# ✅ Safety checks before continuing
+if close_price is None or close_price.empty:
+    st.error("⚠️ No stock data found for this ticker. Please enter a valid ticker symbol (e.g., AAPL, MSFT, TSLA).")
+    st.stop()
+
+if len(close_price) < 30:
+    st.warning("⚠️ Not enough data available for analysis. Please try another stock or a wider date range.")
+    st.stop()
+
 rolling_price = get_rolling_mean(close_price)
 
 # Step 2: Model prep

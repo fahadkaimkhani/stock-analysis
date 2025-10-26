@@ -57,13 +57,13 @@ try:
     col1, col2 = st.columns([1, 1])
     with col1:
         st.markdown("### Price of all the Stocks")
-        st.plotly_chart(pages.utils.capm_functions.interactive_plot(stocks_df))
+        st.plotly_chart(utils.capm_functions.interactive_plot(stocks_df))
 
     with col2:
         st.markdown("### Price of all the Stocks (After Normalizing)")
-        st.plotly_chart(pages.utils.capm_functions.interactive_plot(pages.utils.capm_functions.normalize(stocks_df)))
+        st.plotly_chart(utils.capm_functions.interactive_plot(utils.capm_functions.normalize(stocks_df)))
 
-    stocks_daily_return = pages.utils.capm_functions.daily_return(stocks_df)
+    stocks_daily_return = utils.capm_functions.daily_return(stocks_df)
     st.write(stocks_daily_return.head())  # use st.write instead of print
 
     beta = {}
@@ -71,7 +71,7 @@ try:
 
     for i in stocks_daily_return.columns:
         if i != 'Date' and i != 'sp500':
-            b, a = pages.utils.capm_functions.calculate_beta(stocks_daily_return, i)
+            b, a = utils.capm_functions.calculate_beta(stocks_daily_return, i)
             beta[i] = b
             alpha[i] = a
 
@@ -102,5 +102,4 @@ try:
         st.dataframe(return_df, use_container_width=True)
 
 except:
-
     st.write("Please select valid input")

@@ -2,6 +2,7 @@ import plotly.graph_objects as go
 import dateutil
 import pandas_ta as pta
 import datetime
+import pandas as pd
 
 
 def plotly_table(dataframe):
@@ -37,31 +38,37 @@ def plotly_table(dataframe):
 
 
 def filter_data(dataframe, num_period):
-    # Handle integer num_period as "days"
-    if isinstance(num_period, int):
-        date = dataframe.index[-1] - dateutil.relativedelta.relativedelta(days=num_period)
-
-    elif num_period == '1mo':
-        date = dataframe.index[-1] - dateutil.relativedelta.relativedelta(months=1)
-    elif num_period == '5d':
-        date = dataframe.index[-1] - dateutil.relativedelta.relativedelta(days=5)
-    elif num_period == '6mo':
-        date = dataframe.index[-1] - dateutil.relativedelta.relativedelta(months=6)
-    elif num_period == '1y':
-        date = dataframe.index[-1] - dateutil.relativedelta.relativedelta(years=1)
-    elif num_period == '5y':
-        date = dataframe.index[-1] - dateutil.relativedelta.relativedelta(years=5)
-    elif num_period == 'ytd':
-        date = datetime.datetime(dataframe.index[-1].year, 1, 1)
-    else:
-        date = dataframe.index[0]
-
+    # Ensure we have a Date column (some data may use 'ds' or store dates in the index)
     df = dataframe.reset_index()
-    if 'index' in df.columns:
-        df.rename(columns={'index': 'Date'}, inplace=True)
+    if 'Date' not in df.columns:
+        if 'ds' in df.columns:
+            df.rename(columns={'ds': 'Date'}, inplace=True)
+        elif 'date' in df.columns:
+            df.rename(columns={'date': 'Date'}, inplace=True)
+        else:
+            df['Date'] = df.index  # fallback: use index as Date
 
+    # Make sure 'Date' is datetime type
+    df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+
+    # Determine cutoff date based on num_period
+    if num_period == '1mo':
+        date = df['Date'].iloc[-1] - dateutil.relativedelta.relativedelta(months=1)
+    elif num_period == '5d':
+        date = df['Date'].iloc[-1] - dateutil.relativedelta.relativedelta(days=5)
+    elif num_period == '6mo':
+        date = df['Date'].iloc[-1] - dateutil.relativedelta.relativedelta(months=6)
+    elif num_period == '1y':
+        date = df['Date'].iloc[-1] - dateutil.relativedelta.relativedelta(years=1)
+    elif num_period == '5y':
+        date = df['Date'].iloc[-1] - dateutil.relativedelta.relativedelta(years=5)
+    elif num_period == 'ytd':
+        date = datetime.datetime(df['Date'].iloc[-1].year, 1, 1)
+    else:
+        date = df['Date'].iloc[0]
+
+    # Filter and return
     return df[df['Date'] > date]
-
 
 
 
@@ -129,21 +136,30 @@ def RSI(dataframe, num_period):
 
 
 def Moving_average(dataframe, num_period):
+
     dataframe['SMA_50'] = pta.sma(dataframe['Close'], 50)
     dataframe = filter_data(dataframe, num_period)
-
     fig = go.Figure()
+
+    fig.add_trace(go.Scatter(x=dataframe['Date'], y=dataframe['Open'],
+                    mode='lines', 
+                    name='Open', line = dict(width=2,color = '#5ab7ff')))
     fig.add_trace(go.Scatter(x=dataframe['Date'], y=dataframe['Close'],
-                             mode='lines', name='Close', line=dict(width=2, color='black')))
+                         mode='lines', name='Close', 
+                         line=dict(width=2, color='black')))
+    fig.add_trace(go.Scatter(x=dataframe['Date'], y=dataframe['High'],
+                    mode='lines', name='High', line = dict(width=2,color = '#0078ff')))
+    fig.add_trace(go.Scatter(x=dataframe['Date'], y=dataframe['Low'],
+                    mode='lines', name='Low', line = dict(width=2, color = 'red')))
     fig.add_trace(go.Scatter(x=dataframe['Date'], y=dataframe['SMA_50'],
-                             mode='lines', name='SMA 50', line=dict(width=2, color='purple')))
+                    mode='lines', name='SMA 50', line = dict(width=2,color = 'purple')))
 
     fig.update_xaxes(rangeslider_visible=True)
-    fig.update_layout(height=500, margin=dict(l=0, r=20, t=20, b=0),
-                      plot_bgcolor='white', paper_bgcolor='#eeeeff',
-                      legend=dict(yanchor="top", xanchor='center'))
+    fig.update_layout(height = 500,margin=dict(l=0, r=20, t=20, b=0), plot_bgcolor='white',paper_bgcolor = '#eeeeff', legend=dict(
+    yanchor="top",
+    xanchor='center',
+    ))
     return fig
-
 
  
 def MACD(dataframe, num_period):

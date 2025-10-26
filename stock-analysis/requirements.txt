@@ -9,5 +9,7 @@ statsmodels
 ta
 pandas_ta
 python-dateutil
+pandas_datareader
+setuptools
 
 

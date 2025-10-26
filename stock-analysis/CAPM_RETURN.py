@@ -4,7 +4,7 @@ import pandas as pd
 import yfinance as yf
 import pandas_datareader.data as web
 import datetime
-import pages.utils.capm_functions
+import utils.capm_functions
 
 st.set_page_config(page_title="CAPM",
     page_icon="chart with_upwards_trend",
@@ -102,4 +102,5 @@ try:
         st.dataframe(return_df, use_container_width=True)
 
 except:
+
     st.write("Please select valid input")
